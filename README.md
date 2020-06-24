@@ -2,6 +2,104 @@
 
 ---
 
+## none_avg_pool
+
+### #1번
+
+```python
+        self.classifier = nn.Sequential(
+            nn.Linear(512 * 7 * 7, 4096),
+            nn.ReLU(True),
+            nn.Dropout(),
+            nn.Linear(4096, 4096),
+            nn.ReLU(True),
+            nn.Dropout(),
+            nn.Linear(4096, 1000),
+        )
+
+    def forward(self, x):
+        x = self.features(x)
+        x = x.view(x.size(0), -1)
+        x = self.classifier(x)
+        return x
+```
+
+#### Epoch : 1 / Loss : 6.9131 / Time : 13.3H
+
+### #2번
+
+```python
+        self.classifier = nn.Linear(7*7*512, 1000)
+
+    def forward(self, x):
+        x = self.features(x)
+        x = x.view(x.size(0), -1)
+        x = self.classifier(x)
+        return x
+```
+
+#### Epoch : 1 / Loss : 6.3114 / Time : 14.4H
+
+1번은 시간이 줄고, loss가 2번보다 높은 이유는 `nn.Dropuot()`역할 때문에 계산량은 줄었지만 loss가 더디게 떨어진다
+
+---
+
+## avg_pool
+
+### #1-1번
+
+```python
+        self.classifier = nn.Sequential(
+            nn.Linear(512, 4096),
+            nn.ReLU(True),
+            nn.Dropout(),
+            nn.Linear(4096, 4096),
+            nn.ReLU(True),
+            nn.Dropout(),
+            nn.Linear(4096, 1000),
+        )
+    
+        self.avg_pool = nn.AvgPool2d(7)
+    
+    def forward(self, x):
+        x = self.features(x)
+        x = self.avg_pool(x)
+        x = x.view(x.size(0),-1)
+        x = self.classifier(x)
+        
+        return x
+```
+
+#### Epoch : 1 / Loss : 5.4063 / Time : 14.4H
+
+### #2-1번
+
+```python
+        self.avg_pool = nn.AvgPool2d(7)
+        self.classifier = nn.Linear(512, 4096)
+    
+    
+    def forward(self, x):
+        x = self.features(x)
+        x = self.avg_pool(x)
+        x = x.view(x.size(0),-1)
+        x = self.classifier(x)
+        
+        return x
+```
+
+#### Epoch : 1 / Loss :4.9422 / Time : 14.4H
+
+
+
+nn.Sequential<br>non_avg_pool, avg_pool
+
+|   6.9131   |   5.4063   |
+| :--------: | :--------: |
+| **6.3114** | **4.9422** |
+
+nnLinear<br>non_avg_pool, avg_pool
+
 ## Enviroment	
 
 OS : Ubuntu 18.04 LTS / GPU : RTX 2060 SUPER <br>
